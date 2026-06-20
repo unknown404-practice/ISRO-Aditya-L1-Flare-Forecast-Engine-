@@ -138,6 +138,20 @@ BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 MODEL_PATH = os.path.join(BASE_DIR, 'models', 'model.pt')
 DATA_PATH = os.path.join(BASE_DIR, 'data', 'merged.csv')
 
+def read_tail_csv(csv_path: str, n: int = 500):
+    import io
+    import subprocess
+    with open(csv_path, "r", encoding="utf-8", errors="ignore") as f:
+        header = f.readline()
+    try:
+        cmd = ['powershell', '-Command', f'Get-Content -Tail {n} -Encoding UTF8 -Path "{csv_path}"']
+        res = subprocess.run(cmd, capture_output=True, text=True, check=True)
+        return pd.read_csv(io.StringIO(header + res.stdout), low_memory=False)
+    except Exception:
+        # Fallback to pandas parsing the whole file if powershell fails
+        df = pd.read_csv(csv_path, low_memory=False)
+        return df.tail(n)
+
 # Flask route to expose cached metrics
 @app.route("/metrics")
 def metrics():
@@ -195,7 +209,7 @@ def prepare_input(csv_path: str):
     """
     # Robust numeric conversion for COUNTS, handling missing / non‑numeric entries
     import numpy as np
-    df = pd.read_csv(csv_path, low_memory=False)
+    df = read_tail_csv(csv_path, 10)
     if 'COUNTS' not in df.columns:
         raise ValueError('COUNTS column missing in CSV')
     # Convert to numeric, coerce errors to NaN, replace NaN with 0, ensure float dtype
@@ -233,7 +247,7 @@ def forecast():
         err_msg = f"{err}\n{traceback.format_exc()}"
         print(err_msg, file=sys.stderr)
         try:
-            df = pd.read_csv(DATA_PATH)
+            df = read_tail_csv(DATA_PATH, 10)
             recent_counts = pd.to_numeric(df['COUNTS'], errors='coerce').fillna(0).values.astype(float)
             last10 = recent_counts[-10:] if recent_counts.shape[0] >= 10 else recent_counts
             avg = float(last10.mean())
@@ -263,8 +277,7 @@ def data_files(filename):
 def recent_data():
     # Return last 500 rows of merged.csv as CSV text
     try:
-        df = pd.read_csv(DATA_PATH)
-        recent = df.tail(500)
+        recent = read_tail_csv(DATA_PATH, 500)
         return recent.to_csv(index=False)
     except Exception as e:
         return str(e), 500
