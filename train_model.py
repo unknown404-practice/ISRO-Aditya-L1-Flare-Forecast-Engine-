@@ -170,7 +170,7 @@ for epoch in range(1, EPOCHS+1):
             'flux_scaler': flux_scaler,
         }
         torch.save(ckpt, MODEL_PATH)
-        print(f'✅ New best model saved to {MODEL_PATH}')
+        print(f'New best model saved to {MODEL_PATH}')
 
-print('🏁 Training complete')
+print('Training complete')
 print(f'Best validation accuracy: {best_acc*100:.2f}%')
