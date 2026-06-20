@@ -1,0 +1,182 @@
+[
+  {
+    "timestamp": "2024-07-16T00:00:00",
+    "source": "nowcast",
+    "peak_flux_W_m2": 121.0,
+    "goes_class": "X"
+  },
+  {
+    "timestamp": "2024-07-28T00:00:00",
+    "source": "nowcast",
+    "peak_flux_W_m2": 63.0,
+    "goes_class": "X"
+  },
+  {
+    "timestamp": "2024-07-29T00:00:00",
+    "source": "nowcast",
+    "peak_flux_W_m2": 109.0,
+    "goes_class": "X"
+  },
+  {
+    "timestamp": "2024-07-30T00:00:00",
+    "source": "nowcast",
+    "peak_flux_W_m2": 98.0,
+    "goes_class": "X"
+  },
+  {
+    "timestamp": "2024-08-05T00:00:00",
+    "source": "nowcast",
+    "peak_flux_W_m2": 165.0,
+    "goes_class": "X"
+  },
+  {
+    "timestamp": "2024-08-09T00:00:00",
+    "source": "nowcast",
+    "peak_flux_W_m2": 121.0,
+    "goes_class": "X"
+  },
+  {
+    "timestamp": "2024-08-14T00:00:00",
+    "source": "nowcast",
+    "peak_flux_W_m2": 1564.0,
+    "goes_class": "X"
+  },
+  {
+    "timestamp": "2024-09-14T00:00:00",
+    "source": "nowcast",
+    "peak_flux_W_m2": 141.0,
+    "goes_class": "X"
+  },
+  {
+    "timestamp": "2024-09-15T00:00:00",
+    "source": "nowcast",
+    "peak_flux_W_m2": 42.0,
+    "goes_class": "X"
+  },
+  {
+    "timestamp": "2024-10-01T00:00:00",
+    "source": "nowcast",
+    "peak_flux_W_m2": 5375.0,
+    "goes_class": "X"
+  },
+  {
+    "timestamp": "2024-10-02T00:00:00",
+    "source": "nowcast",
+    "peak_flux_W_m2": 350.0,
+    "goes_class": "X"
+  },
+  {
+    "timestamp": "2024-10-03T00:00:00",
+    "source": "nowcast",
+    "peak_flux_W_m2": NaN,
+    "goes_class": "A"
+  },
+  {
+    "timestamp": "2024-10-06T00:00:00",
+    "source": "nowcast",
+    "peak_flux_W_m2": 250.0,
+    "goes_class": "X"
+  },
+  {
+    "timestamp": "2024-10-07T00:00:00",
+    "source": "nowcast",
+    "peak_flux_W_m2": 105.0,
+    "goes_class": "X"
+  },
+  {
+    "timestamp": "2024-10-09T00:00:00",
+    "source": "nowcast",
+    "peak_flux_W_m2": 86.0,
+    "goes_class": "X"
+  },
+  {
+    "timestamp": "2024-10-24T00:00:00",
+    "source": "nowcast",
+    "peak_flux_W_m2": 49.0,
+    "goes_class": "X"
+  },
+  {
+    "timestamp": "2024-10-26T00:00:00",
+    "source": "nowcast",
+    "peak_flux_W_m2": 76.0,
+    "goes_class": "X"
+  },
+  {
+    "timestamp": "2024-10-30T00:00:00",
+    "source": "nowcast",
+    "peak_flux_W_m2": 66.0,
+    "goes_class": "X"
+  },
+  {
+    "timestamp": "2024-10-31T00:00:00",
+    "source": "nowcast",
+    "peak_flux_W_m2": 227.0,
+    "goes_class": "X"
+  },
+  {
+    "timestamp": "2024-11-07T00:00:00",
+    "source": "nowcast",
+    "peak_flux_W_m2": 733.0,
+    "goes_class": "X"
+  },
+  {
+    "timestamp": "2024-11-20T00:00:00",
+    "source": "nowcast",
+    "peak_flux_W_m2": 34.0,
+    "goes_class": "X"
+  },
+  {
+    "timestamp": "2024-12-29T00:00:00",
+    "source": "nowcast",
+    "peak_flux_W_m2": 179.0,
+    "goes_class": "X"
+  },
+  {
+    "timestamp": "2024-12-30T00:00:00",
+    "source": "nowcast",
+    "peak_flux_W_m2": 194.0,
+    "goes_class": "X"
+  },
+  {
+    "timestamp": "2025-01-01T00:00:00",
+    "source": "nowcast",
+    "peak_flux_W_m2": 217.0,
+    "goes_class": "X"
+  },
+  {
+    "timestamp": "2025-01-03T00:00:00",
+    "source": "nowcast",
+    "peak_flux_W_m2": 41.0,
+    "goes_class": "X"
+  },
+  {
+    "timestamp": "2025-01-04T00:00:00",
+    "source": "nowcast",
+    "peak_flux_W_m2": 3130.0,
+    "goes_class": "X"
+  },
+  {
+    "timestamp": "2025-02-01T00:00:00",
+    "source": "nowcast",
+    "peak_flux_W_m2": 44.0,
+    "goes_class": "X"
+  },
+  {
+    "timestamp": "2025-02-11T00:00:00",
+    "source": "nowcast",
+    "peak_flux_W_m2": 27.0,
+    "goes_class": "X"
+  },
+  {
+    "timestamp": "2025-02-24T00:00:00",
+    "source": "nowcast",
+    "peak_flux_W_m2": 96.0,
+    "goes_class": "X"
+  },
+  {
+    "timestamp": "2025-02-26T00:00:00",
+    "source": "nowcast",
+    "peak_flux_W_m2": 41.0,
+    "goes_class": "X"
+  }
+]

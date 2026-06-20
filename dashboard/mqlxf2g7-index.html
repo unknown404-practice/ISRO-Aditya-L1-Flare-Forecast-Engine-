@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600&family=Inter:wght@400;500&display=swap');
+</style>
+  <link rel="stylesheet" href="style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <header>
+    <span class="title">Solar Flare Forecast Dashboard</span>
+  </header>
+  <section class="subtitle">Real‑time solar flare monitoring • Space science dashboard</section>
+  <div class="controls" style="margin: 1rem 0; display:flex; gap:1rem; justify-content:center; align-items:center;">
+    <button id="refreshBtn" class="btn">Refresh Data</button>
+    <label class="toggle">
+      <input type="checkbox" id="themeToggle" />
+      <span class="slider"></span>
+    </label>
+    <span style="color:#e0e0e0;">Dark/Light Mode</span>
+  </div>
+  <main class="main">
+    <section class="card">
+      <h2>Observed Flux (Counts)</h2>
+      <canvas id="fluxChart"></canvas>
+    </section>
+    <section class="card">
+      <h2>Forecast (Class &amp; Peak Flux)</h2>
+      <div id="forecastResult">Loading forecast...</div>
+      <div class="spinner" id="loadingSpinner"></div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <span>© 2026 Solar Flare Forecast • Powered by Antigravity AI</span>
+  </footer>
+  <script src="script.js"></script>
+</body>
+</html>

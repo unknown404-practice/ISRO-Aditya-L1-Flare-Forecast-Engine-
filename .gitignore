@@ -1,0 +1,9 @@
+__pycache__/
+*.pyc
+archive (2).zip
+archive_extracted/
+hel1os_2026Jun19T134229813.zip
+hel1os_extracted/
+models/model.pt
+.env
+data/merged.csv

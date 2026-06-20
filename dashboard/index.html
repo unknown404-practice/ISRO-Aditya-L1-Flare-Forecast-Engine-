@@ -1,0 +1,781 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Solar Flare Forecast — Deep Space Dashboard</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+@font-face{font-family:'Orbitron';font-style:normal;font-weight:400 700;src:url(https://fonts.gstatic.com/s/orbitron/v31/yMJRMIlzdpvBhQQL_Qq7dys.woff2) format('woff2');unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+2074,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
+:root{
+  --space-bg:#05070a;
+  --space-bg2:#0a0e1a;
+  --card-bg:rgba(10,14,26,0.75);
+  --glass-edge:rgba(100,160,255,0.12);
+  --glass-glow:rgba(70,130,255,0.06);
+  --text:#d0d8e8;
+  --text-muted:#7a8aa0;
+  --accent-cyan:#5bc0eb;
+  --accent-orange:#f59e5c;
+  --accent-purple:#8b6cfb;
+  --font-body:system-ui,-apple-system,'Segoe UI',sans-serif;
+  --font-display:'Orbitron',system-ui,sans-serif;
+}
+html{background:var(--space-bg)}
+body{
+  font-family:var(--font-body);
+  color:var(--text);
+  min-height:100vh;
+  overflow-x:hidden;
+  background:radial-gradient(ellipse at 20% 30%, #0d1b33 0%, #05070a 60%);
+}
+
+/* ---- space canvas ---- */
+#spaceCanvas{
+  position:fixed;
+  inset:0;
+  width:100%;
+  height:100%;
+  z-index:0;
+  pointer-events:none;
+}
+
+/* ---- layout ---- */
+.app-container{
+  position:relative;
+  z-index:1;
+  max-width:1360px;
+  margin:0 auto;
+  padding:0 24px 40px;
+}
+
+/* ---- header ---- */
+.header{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:28px 0 14px;
+  border-bottom:1px solid var(--glass-edge);
+  flex-wrap:wrap;
+  gap:12px;
+}
+.header-left{
+  display:flex;
+  align-items:center;
+  gap:14px;
+}
+.logo-icon{
+  width:36px;height:36px;
+  border-radius:50%;
+  background:conic-gradient(from 0deg, var(--accent-orange), var(--accent-cyan), var(--accent-purple), var(--accent-orange));
+  animation:spin-glow 6s linear infinite;
+  box-shadow:0 0 20px rgba(91,192,235,0.25);
+}
+@keyframes spin-glow{to{transform:rotate(360deg)}}
+.header-title{
+  font-family:var(--font-display);
+  font-size:clamp(1rem,2.2vw,1.5rem);
+  font-weight:600;
+  letter-spacing:0.08em;
+  text-transform:uppercase;
+  background:linear-gradient(135deg,var(--accent-cyan),var(--accent-purple));
+  -webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;
+  background-clip:text;
+}
+.header-meta{
+  font-size:0.75rem;
+  color:var(--text-muted);
+  letter-spacing:0.06em;
+  font-variant-numeric:tabular-nums;
+}
+
+/* ---- controls row ---- */
+.controls-row{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:16px 0;
+  gap:12px;
+  flex-wrap:wrap;
+}
+.controls-left{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.controls-right{display:flex;align-items:center;gap:14px}
+
+/* buttons */
+.btn{
+  font-family:var(--font-body);
+  font-size:0.82rem;
+  font-weight:500;
+  padding:8px 18px;
+  border-radius:6px;
+  border:1px solid var(--glass-edge);
+  background:var(--card-bg);
+  color:var(--text);
+  cursor:pointer;
+  transition:all 0.25s;
+  letter-spacing:0.03em;
+}
+.btn:hover{
+  border-color:var(--accent-cyan);
+  box-shadow:0 0 18px rgba(91,192,235,0.15);
+}
+.btn-primary{
+  background:linear-gradient(135deg,rgba(91,192,235,0.15),rgba(139,108,251,0.1));
+  border-color:var(--accent-cyan);
+  color:var(--accent-cyan);
+}
+.btn-primary:hover{
+  background:linear-gradient(135deg,rgba(91,192,235,0.25),rgba(139,108,251,0.2));
+  box-shadow:0 0 22px rgba(91,192,235,0.25);
+}
+
+/* toggle */
+.toggle-wrap{display:flex;align-items:center;gap:8px;font-size:0.78rem;color:var(--text-muted)}
+.toggle{
+  position:relative;
+  display:inline-block;
+  width:42px;height:22px;
+  flex-shrink:0;
+}
+.toggle input{opacity:0;width:0;height:0}
+.toggle .slider{
+  position:absolute;cursor:pointer;inset:0;
+  background:rgba(255,255,255,0.08);
+  border:1px solid var(--glass-edge);
+  border-radius:22px;
+  transition:0.3s;
+}
+.toggle .slider::before{
+  content:'';
+  position:absolute;width:16px;height:16px;
+  left:2px;bottom:2px;
+  background:var(--accent-cyan);
+  border-radius:50%;
+  transition:0.3s;
+  box-shadow:0 0 8px rgba(91,192,235,0.3);
+}
+.toggle input:checked+.slider{background:rgba(91,192,235,0.2);border-color:var(--accent-cyan)}
+.toggle input:checked+.slider::before{transform:translateX(20px);background:var(--accent-orange);box-shadow:0 0 8px rgba(245,158,92,0.3)}
+
+/* ---- metrics strip ---- */
+.metrics-strip{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(160px,1fr));
+  gap:12px;
+  padding:16px 0;
+}
+.metric-card{
+  background:var(--card-bg);
+  border:1px solid var(--glass-edge);
+  border-radius:10px;
+  padding:14px 16px;
+  backdrop-filter:blur(12px);
+  transition:border-color 0.3s;
+}
+.metric-card:hover{border-color:rgba(100,160,255,0.25)}
+.metric-label{
+  font-size:0.68rem;
+  text-transform:uppercase;
+  letter-spacing:0.08em;
+  color:var(--text-muted);
+  margin-bottom:4px;
+}
+.metric-value{
+  font-size:1.25rem;
+  font-weight:600;
+  font-variant-numeric:tabular-nums;
+  letter-spacing:-0.01em;
+}
+.metric-value.cyan{color:var(--accent-cyan)}
+.metric-value.orange{color:var(--accent-orange)}
+.metric-value.purple{color:var(--accent-purple)}
+.metric-sub{
+  font-size:0.7rem;
+  color:var(--text-muted);
+  margin-top:2px;
+}
+
+/* ---- main grid ---- */
+.main-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:20px;
+  padding-top:12px;
+}
+@media(max-width:860px){.main-grid{grid-template-columns:1fr}}
+
+.card{
+  background:var(--card-bg);
+  border:1px solid var(--glass-edge);
+  border-radius:12px;
+  padding:22px;
+  backdrop-filter:blur(12px);
+  position:relative;
+  overflow:hidden;
+}
+.card::before{
+  content:'';
+  position:absolute;top:0;left:0;right:0;
+  height:1px;
+  background:linear-gradient(90deg,transparent,var(--accent-cyan),transparent);
+  opacity:0.4;
+}
+.card-title{
+  font-family:var(--font-display);
+  font-size:0.85rem;
+  text-transform:uppercase;
+  letter-spacing:0.1em;
+  color:var(--text-muted);
+  margin-bottom:16px;
+  display:flex;align-items:center;gap:10px;
+}
+.card-title .dot{
+  display:inline-block;width:6px;height:6px;
+  border-radius:50%;
+  animation:pulse-dot 2s ease-in-out infinite;
+}
+.dot.cyan{background:var(--accent-cyan)}
+.dot.orange{background:var(--accent-orange)}
+@keyframes pulse-dot{0%,100%{opacity:0.4}50%{opacity:1}}
+
+/* ---- forecast ---- */
+#forecastResult{
+  font-size:1.1rem;
+  line-height:1.6;
+  text-align:center;
+  padding:20px 0;
+}
+#forecastResult strong{color:var(--accent-cyan)}
+.forecast-class{
+  display:inline-block;
+  font-family:var(--font-display);
+  font-size:2.2rem;
+  font-weight:700;
+  letter-spacing:0.06em;
+  background:linear-gradient(135deg,var(--accent-orange),var(--accent-cyan));
+  -webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;
+  background-clip:text;
+  margin:0 4px;
+}
+.forecast-flux{
+  font-size:1.3rem;
+  font-weight:600;
+  color:var(--accent-orange);
+}
+.spinner{
+  width:28px;height:28px;
+  border:2px solid rgba(255,255,255,0.06);
+  border-top-color:var(--accent-cyan);
+  border-radius:50%;
+  animation:spin 0.8s linear infinite;
+  margin:16px auto;
+  display:none;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ---- chart ---- */
+canvas#fluxChart{
+  width:100% !important;
+  height:320px !important;
+  border-radius:6px;
+}
+
+/* ---- footer ---- */
+.footer{
+  margin-top:32px;
+  padding:18px 0;
+  border-top:1px solid var(--glass-edge);
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  font-size:0.72rem;
+  color:var(--text-muted);
+  letter-spacing:0.04em;
+  flex-wrap:wrap;gap:8px;
+}
+.footer .pulse{
+  display:inline-block;width:6px;height:6px;
+  border-radius:50%;background:var(--accent-cyan);
+  margin-right:6px;animation:pulse-dot 2s ease-in-out infinite;
+  vertical-align:middle;
+}
+
+/* ---- scrollbar ---- */
+::-webkit-scrollbar{width:4px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:rgba(91,192,235,0.2);border-radius:4px}
+
+/* ---- toast ---- */
+.toast{
+  position:fixed;bottom:30px;left:50%;transform:translateX(-50%);
+  background:rgba(10,14,26,0.9);
+  backdrop-filter:blur(12px);
+  border:1px solid var(--glass-edge);
+  border-radius:8px;
+  padding:10px 22px;
+  font-size:0.82rem;
+  color:var(--text);
+  z-index:100;
+  opacity:0;
+  transition:opacity 0.4s;
+  pointer-events:none;
+}
+.toast.show{opacity:1;pointer-events:auto}
+</style>
+</head>
+<body>
+
+<canvas id="spaceCanvas"></canvas>
+
+<div class="app-container">
+  <header class="header">
+    <div class="header-left">
+      <div class="logo-icon"></div>
+      <span class="header-title">Solar Flare Forecast</span>
+    </div>
+    <span class="header-meta" id="liveTimestamp">—</span>
+  </header>
+
+  <div class="controls-row">
+    <div class="controls-left">
+      <button id="refreshBtn" class="btn btn-primary">⟳ Refresh</button>
+    </div>
+    <div class="controls-right">
+      <div class="toggle-wrap">
+        <label class="toggle">
+          <input type="checkbox" id="themeToggle" />
+          <span class="slider"></span>
+        </label>
+        <span>Dark / Light</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="metrics-strip">
+    <div class="metric-card">
+      <div class="metric-label">Solar Wind</div>
+      <div class="metric-value cyan" id="solarWind">— <span style="font-size:0.65rem;font-weight:400;color:var(--text-muted)">km/s</span></div>
+      <div class="metric-sub">in-situ</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-label">X-ray Flux</div>
+      <div class="metric-value orange" id="xrayFlux">— <span style="font-size:0.65rem;font-weight:400;color:var(--text-muted)">W/m²</span></div>
+      <div class="metric-sub">GOES</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-label">Sunspot Number</div>
+      <div class="metric-value purple" id="sunspotNum">—</div>
+      <div class="metric-sub">SIDC</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-label">Flare Probability</div>
+      <div class="metric-value" style="color:var(--accent-cyan)" id="flareProb">— <span style="font-size:0.65rem;font-weight:400;color:var(--text-muted)">%</span></div>
+      <div class="metric-sub">M-class+</div>
+    </div>
+  </div>
+
+  <div class="main-grid">
+    <section class="card">
+      <div class="card-title"><span class="dot cyan"></span>Observed Flux</div>
+      <canvas id="fluxChart"></canvas>
+    </section>
+    <section class="card">
+      <div class="card-title"><span class="dot orange"></span>Forecast</div>
+      <div id="forecastResult">Loading forecast…</div>
+      <div class="spinner" id="loadingSpinner"></div>
+    </section>
+  </div>
+
+  <footer class="footer">
+    <span><span class="pulse"></span>Real-time solar flare monitoring</span>
+    <span>By Ranadeep Saha</span>
+  </footer>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ============================================================
+   SPACE CANVAS — stars, asteroids, shooting stars, nebula
+   ============================================================ */
+;(function(){
+  const canvas = document.getElementById('spaceCanvas');
+  const ctx = canvas.getContext('2d');
+  let W, H;
+
+  function resize(){
+    W = canvas.width = window.innerWidth;
+    H = canvas.height = window.innerHeight;
+  }
+  window.addEventListener('resize',resize);
+  resize();
+
+  /* ---- stars ---- */
+  const STARS = 350;
+  const stars = Array.from({length:STARS},()=>({
+    x:Math.random()*W, y:Math.random()*H,
+    r:Math.random()*1.6+0.3,
+    speed:0.08+Math.random()*0.35,
+    twinkle:Math.random()*Math.PI*2,
+    twinkleSpeed:0.008+Math.random()*0.025,
+    depth:Math.floor(Math.random()*3) // 0=far,1=mid,2=near
+  }));
+
+  /* ---- asteroids ---- */
+  function makeAsteroid(){
+    const edge = Math.floor(Math.random()*4); // 0=top,1=right,2=bottom,3=left
+    const x = edge===0 ? Math.random()*W : edge===1 ? W+20 : edge===2 ? Math.random()*W : -20;
+    const y = edge===0 ? -20 : edge===1 ? Math.random()*H : edge===2 ? H+20 : Math.random()*H;
+    const angle = Math.atan2(H/2-y, W/2-x) + (Math.random()-0.5)*0.6;
+    const speed = 0.12+Math.random()*0.28;
+    const sides = 6+Math.floor(Math.random()*5);
+    const radius = 8+Math.random()*18;
+    const phase = Math.random()*Math.PI*2;
+    const rotSpeed = (Math.random()-0.5)*0.02;
+    // crater positions
+    const craters = Array.from({length:Math.floor(Math.random()*3)+1},()=>({
+      ox:(Math.random()-0.5)*radius*0.6,
+      oy:(Math.random()-0.5)*radius*0.6,
+      cr:1.5+Math.random()*3
+    }));
+    // vertices for irregular shape
+    const verts = Array.from({length:sides},(_,i)=>{
+      const a = (i/sides)*Math.PI*2;
+      const rOff = 0.7+Math.random()*0.5;
+      return {a,r:radius*rOff};
+    });
+    return {x,y,angle,speed,verts,rot:phase,rotSpeed,craters,radius};
+  }
+
+  let asteroids = Array.from({length:5},()=>makeAsteroid());
+
+  /* ---- shooting stars ---- */
+  let shootingStars = [];
+
+  function spawnShootingStar(){
+    const x = Math.random()*W*0.8;
+    const y = Math.random()*H*0.4;
+    const len = 40+Math.random()*80;
+    const angle = Math.PI/4 + (Math.random()-0.5)*0.4;
+    const speed = 4+Math.random()*6;
+    shootingStars.push({x,y,len,angle,speed,life:1});
+  }
+
+  /* ---- nebula washes ---- */
+  const nebulaSpots = Array.from({length:4},()=>({
+    x:Math.random(), y:Math.random(),
+    r:0.15+Math.random()*0.25,
+    color:[
+      `rgba(70,100,180,${0.03+Math.random()*0.03})`,
+      `rgba(180,100,200,${0.02+Math.random()*0.02})`,
+      `rgba(200,120,80,${0.015+Math.random()*0.02})`,
+      `rgba(60,180,200,${0.02+Math.random()*0.02})`
+    ][Math.floor(Math.random()*4)]
+  }));
+
+  /* ---- draw helpers ---- */
+  function drawAsteroid(ast){
+    ctx.save();
+    ctx.translate(ast.x,ast.y);
+    ctx.rotate(ast.rot);
+
+    // body
+    ctx.beginPath();
+    ast.verts.forEach((v,i)=>{
+      const px = Math.cos(v.a)*v.r;
+      const py = Math.sin(v.a)*v.r;
+      i===0 ? ctx.moveTo(px,py) : ctx.lineTo(px,py);
+    });
+    ctx.closePath();
+    ctx.fillStyle='rgba(80,85,100,0.35)';
+    ctx.fill();
+    ctx.strokeStyle='rgba(160,180,210,0.3)';
+    ctx.lineWidth=0.8;
+    ctx.stroke();
+
+    // craters
+    ast.craters.forEach(c=>{
+      ctx.beginPath();
+      ctx.ellipse(c.ox,c.oy,c.cr,c.cr*0.7,0,0,Math.PI*2);
+      ctx.fillStyle='rgba(0,0,0,0.18)';
+      ctx.fill();
+      ctx.strokeStyle='rgba(160,180,210,0.12)';
+      ctx.lineWidth=0.5;
+      ctx.stroke();
+    });
+
+    ctx.restore();
+  }
+
+  function drawStar(s){
+    const a = s.twinkle;
+    const alpha = 0.3+0.7*(0.5+0.5*Math.sin(a));
+    const depthScale = 1/(s.depth+1);
+    ctx.beginPath();
+    ctx.arc(s.x,s.y,s.r*depthScale,0,Math.PI*2);
+    ctx.fillStyle=`rgba(220,235,255,${alpha})`;
+    ctx.fill();
+
+    // subtle glow for near stars
+    if(s.depth===2 && alpha>0.7){
+      ctx.beginPath();
+      ctx.arc(s.x,s.y,s.r*3,0,Math.PI*2);
+      ctx.fillStyle=`rgba(180,210,255,${alpha*0.08})`;
+      ctx.fill();
+    }
+  }
+
+  function drawShootingStar(ss){
+    const tailX = ss.x - Math.cos(ss.angle)*ss.len;
+    const tailY = ss.y - Math.sin(ss.angle)*ss.len;
+    const grad = ctx.createLinearGradient(ss.x,ss.y,tailX,tailY);
+    grad.addColorStop(0,`rgba(255,240,220,${ss.life})`);
+    grad.addColorStop(1,`rgba(255,240,220,0)`);
+    ctx.beginPath();
+    ctx.moveTo(ss.x,ss.y);
+    ctx.lineTo(tailX,tailY);
+    ctx.strokeStyle=grad;
+    ctx.lineWidth=1.5*ss.life;
+    ctx.stroke();
+
+    // head glow
+    ctx.beginPath();
+    ctx.arc(ss.x,ss.y,2*ss.life,0,Math.PI*2);
+    ctx.fillStyle=`rgba(255,250,240,${ss.life*0.8})`;
+    ctx.fill();
+  }
+
+  let time=0;
+  function animate(){
+    time++;
+    ctx.clearRect(0,0,W,H);
+
+    // -- nebula washes --
+    nebulaSpots.forEach(n=>{
+      const grad = ctx.createRadialGradient(n.x*W,n.y*H,0,n.x*W,n.y*H,n.r*Math.min(W,H));
+      grad.addColorStop(0,n.color);
+      grad.addColorStop(1,'transparent');
+      ctx.fillStyle=grad;
+      ctx.fillRect(0,0,W,H);
+    });
+
+    // -- stars --
+    stars.forEach(s=>{
+      s.twinkle += s.twinkleSpeed;
+      // drift
+      const drift = 0.5/(s.depth+1);
+      s.x -= drift * (0.5+0.5*Math.sin(time*0.0003+s.y*0.01));
+      s.y += drift * (0.3+0.3*Math.cos(time*0.0004+s.x*0.01));
+      if(s.x< -10) s.x=W+10;
+      if(s.x>W+10) s.x=-10;
+      if(s.y< -10) s.y=H+10;
+      if(s.y>H+10) s.y=-10;
+      drawStar(s);
+    });
+
+    // -- asteroids --
+    asteroids.forEach(ast=>{
+      ast.x += Math.cos(ast.angle)*ast.speed;
+      ast.y += Math.sin(ast.angle)*ast.speed;
+      ast.rot += ast.rotSpeed;
+      drawAsteroid(ast);
+      // respawn if off screen
+      if(ast.x<-80 || ast.x>W+80 || ast.y<-80 || ast.y>H+80){
+        Object.assign(ast, makeAsteroid());
+      }
+    });
+
+    // -- shooting stars --
+    if(shootingStars.length<3 && Math.random()<0.005) spawnShootingStar();
+    shootingStars = shootingStars.filter(ss=>{
+      ss.x += Math.cos(ss.angle)*ss.speed;
+      ss.y += Math.sin(ss.angle)*ss.speed;
+      ss.life -= 0.015;
+      drawShootingStar(ss);
+      return ss.life>0 && ss.x<W+20 && ss.y<H+20;
+    });
+
+    requestAnimationFrame(animate);
+  }
+  animate();
+})();
+
+/* ============================================================
+   MAIN APP — chart, forecast, metrics, theme
+   ============================================================ */
+document.addEventListener('DOMContentLoaded',()=>{
+
+  /* ---- live timestamp ---- */
+  function updateTimestamp(){
+    const n=new Date();
+    document.getElementById('liveTimestamp').textContent=
+      n.toISOString().replace('T',' ').slice(0,19)+' UTC';
+  }
+  updateTimestamp();
+  setInterval(updateTimestamp,1000);
+
+  /* ---- toast helper ---- */
+  let toastTimer;
+  function showToast(msg){
+    const t=document.getElementById('toast');
+    t.textContent=msg;
+    t.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer=setTimeout(()=>t.classList.remove('show'),2200);
+  }
+
+  /* ---- theme toggle ---- */
+  const themeToggle=document.getElementById('themeToggle');
+  function applyTheme(dark){
+    document.body.style.filter='';
+    if(dark){
+      themeToggle.checked=true;
+      showToast('Light mode activated');
+    } else {
+      themeToggle.checked=false;
+      showToast('Dark mode — returning to space');
+    }
+    localStorage.setItem('darkMode',dark?'1':'0');
+  }
+  const saved=localStorage.getItem('darkMode');
+  applyTheme(saved==='1');
+  themeToggle.addEventListener('change',()=>applyTheme(themeToggle.checked));
+
+  /* ---- real metrics (fetch from Flask /metrics) ---- */
+  function loadMetrics(){
+    fetch('/metrics')
+      .then(r => {
+        if (!r.ok) throw new Error('Metrics API error');
+        return r.json();
+      })
+      .then(data => {
+        if (data.solar_wind !== null) {
+          document.getElementById('solarWind').innerHTML = `${data.solar_wind.toFixed(1)} <span style="font-size:0.65rem;font-weight:400;color:var(--text-muted)">km/s</span>`;
+        }
+        if (data.xray_flux) {
+          document.getElementById('xrayFlux').innerHTML = `${data.xray_flux} <span style="font-size:0.65rem;font-weight:400;color:var(--text-muted)">W/m²</span>`;
+        }
+        if (data.sunspot_number !== null) {
+          document.getElementById('sunspotNum').textContent = data.sunspot_number;
+        }
+        if (data.flare_probability !== null) {
+          document.getElementById('flareProb').innerHTML = `${data.flare_probability.toFixed(0)} <span style="font-size:0.65rem;font-weight:400;color:var(--text-muted)">% </span>`;
+        }
+      })
+      .catch(err => {
+        console.warn('Metrics fetch failed, keeping previous values.', err);
+      });
+  }
+  // Initial load and auto‑refresh every 30 seconds
+  loadMetrics();
+  setInterval(loadMetrics, 30000);
+
+
+  /* ---- Chart.js ---- */
+  const ctx=document.getElementById('fluxChart').getContext('2d');
+  let chart;
+
+  function buildChart(labels,counts){
+    if(chart) chart.destroy();
+    chart=new Chart(ctx,{
+      type:'line',
+      data:{
+        labels,
+        datasets:[{
+          label:'Observed Flux',
+          data:counts,
+          borderColor:'#5bc0eb',
+          backgroundColor:'rgba(91,192,235,0.06)',
+          borderWidth:1.5,
+          pointRadius:0,
+          tension:0.25,
+          fill:true
+        }]
+      },
+      options:{
+        responsive:true,
+        maintainAspectRatio:false,
+        plugins:{
+          legend:{display:false}
+        },
+        scales:{
+          x:{
+            display:true,
+            ticks:{color:'rgba(200,210,230,0.5)',maxTicksLimit:10,font:{size:10}},
+            grid:{color:'rgba(255,255,255,0.03)'},
+            title:{display:true,text:'Time',color:'rgba(200,210,230,0.4)',font:{size:10}}
+          },
+          y:{
+            display:true,
+            ticks:{color:'rgba(200,210,230,0.5)',font:{size:10}},
+            grid:{color:'rgba(255,255,255,0.03)'},
+            title:{display:true,text:'Counts',color:'rgba(200,210,230,0.4)',font:{size:10}}
+          }
+        }
+      }
+    });
+  }
+
+  /* ---- fetch data ---- */
+  function loadData(){
+    fetch('/data/recent')
+      .then(r=>{if(!r.ok) throw new Error('Data unavailable');return r.text()})
+      .then(csv=>{
+        const rows=csv.trim().split('\n').slice(1);
+        const labels=[],counts=[];
+        rows.forEach(row=>{
+          const parts=row.split(',');
+          const ts=parts[2]||parts[0];
+          labels.push(ts);
+          const c=parseFloat(parts[1]);
+          counts.push(isNaN(c)?0:c);
+        });
+        buildChart(labels,counts);
+      })
+      .catch(err=>{
+        // demo data
+        const now=Date.now();
+        const labels=Array.from({length:48},(_,i)=>{
+          const d=new Date(now-(47-i)*6e5);
+          return d.toTimeString().slice(0,5);
+        });
+        const counts=labels.map(()=>Math.floor(200+Math.random()*800));
+        buildChart(labels,counts);
+        showToast('Using simulated flux data');
+      });
+  }
+  loadData();
+
+  /* ---- fetch forecast ---- */
+  function loadForecast(){
+    document.getElementById('loadingSpinner').style.display='block';
+    fetch('/forecast')
+      .then(r=>{if(!r.ok) throw new Error('Forecast API unreachable');return r.json()})
+      .then(data=>{
+        const cls=data.class||'—';
+        const flux=data.peak_flux_W_m2;
+        const fluxStr=flux!==undefined ? parseFloat(flux).toExponential(3) : '—';
+        document.getElementById('forecastResult').innerHTML=
+          `<span style="font-size:0.85rem;color:var(--text-muted)">Predicted class</span><br>`+
+          `<span class="forecast-class">${cls}</span><br>`+
+          `<span style="font-size:0.85rem;color:var(--text-muted);margin-top:8px;display:inline-block">Peak flux</span><br>`+
+          `<span class="forecast-flux">${fluxStr} W/m²</span>`;
+      })
+      .catch(err=>{
+        document.getElementById('forecastResult').innerHTML=
+          `<div style="color:var(--text-muted);padding:10px 0">Forecast unavailable</div>`+
+          `<div style="font-size:0.78rem;color:var(--text-muted)">${err.message}</div>`;
+      })
+      .finally(()=>document.getElementById('loadingSpinner').style.display='none');
+  }
+  loadForecast();
+
+  /* ---- refresh ---- */
+  document.getElementById('refreshBtn').addEventListener('click',()=>{loadData();loadForecast();loadMetrics();updateTimestamp();showToast('Data refreshed');});
+});
+</script>
+</body>
+</html>
