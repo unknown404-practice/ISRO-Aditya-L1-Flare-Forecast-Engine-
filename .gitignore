@@ -7,3 +7,5 @@ hel1os_extracted/
 models/model.pt
 .env
 data/merged.csv
+Submission_Details.md
+PPT_Generation_Prompt.md
