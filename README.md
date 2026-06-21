@@ -58,7 +58,8 @@ python app.py
 ```
 
 ### 5. Access the UI
-Open your favorite web browser and navigate to you localhost to see the creation
+Open your favorite web browser and navigate to your localhost to see the creation. For example, type a URL structure like this into your address bar:
+`http://127.0.0.1:5000` or `http://localhost:5000`
 
 ---
 
